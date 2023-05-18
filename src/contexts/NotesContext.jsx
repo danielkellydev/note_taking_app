@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer } from "react";
+import { createContext, useContext, useEffect, useReducer } from "react";
+import { useLocalStorage } from "react-use";
 
 const initialNotesData = [
     {
@@ -10,6 +11,15 @@ const initialNotesData = [
         createdAtData: Date.now()
     }
 ]
+
+/**
+ * 
+ * Runs automatically when a dispatch function is called.
+ * instruction.type determines _how_ we edit the state
+ * The reducer must return something, otherwise state is set to null
+ * What is returned, is the new state
+ * @returns New state, edited based on instructions provided
+ */
 
 const notesReducer = (previousState, instructions) => {
     let stateEditable = [...previousState]
@@ -39,19 +49,42 @@ const notesReducer = (previousState, instructions) => {
     }
 }
 
+//This is how we make our reducer state and reducer dispatch global
 export const NoteDataContext = createContext(null)
 export const NoteDispatchContext = createContext(null)
 
+//Custom hooks, that just provide direct access to one part of the reducer
+// eg. read-only data:
 export function useNoteData() {
     return useContext(NoteDataContext)
 }
 
+// function to modify the data:
 export function useNoteDispatch(){
     return useContext(NoteDispatchContext)
 }
 
+/**
+ * NotesProvider wraps around the component tree. Any child component has access to this note data via useNoteDispatch
+ * @param {*} props props.children should be a JSX element. This NotesProvider wraps around that element. 
+ */
 export default function NotesProvider(props){
     const [notesData, notesDispatch] = useReducer(notesReducer, initialNotesData)
+
+    const [persistentData, setPersistentData] = useLocalStorage('notes', initialNotesData)
+
+    useEffect(()=> {
+        // On app start, overwrite notesData with persistentData
+        // notesDispatch()
+    }, [])
+
+    useEffect(() => {
+        console.log("Local storage: " + persistentData)
+    }, [persistentData])
+
+    useEffect(() => {
+        setPersistentData(notesData)
+    }, [notesData])
 
     return (
         <NoteDataContext.Provider value={notesData}>

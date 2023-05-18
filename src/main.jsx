@@ -9,7 +9,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
         <NotesProvider>
-            <App />
+          <App />
         </NotesProvider>
     </BrowserRouter>
     
